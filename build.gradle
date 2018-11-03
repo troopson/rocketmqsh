@@ -1,0 +1,59 @@
+configurations.all {
+	exclude module:'log4j-over-slf4j'
+	exclude module: "tomcat" 
+}
+ 
+apply plugin: 'java'
+
+jar {
+  
+	  archiveName = 'rmsend.jar'
+	  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } 
+	  exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA' 
+ 
+
+}
+
+ 
+//configurations.compile.transitive = false
+
+
+
+task copyJars(type:Copy) {
+
+  from configurations.runtime
+  into 'build/runtime' // 目标位置
+
+}
+
+task addDependToManifest << {
+    if (!configurations.runtime.isEmpty()) {
+        jar.manifest.attributes('Class-Path': ". " + configurations.runtime.collect { it.name }.join(' '))
+    }
+}
+jar.dependsOn += addDependToManifest 
+
+jar.dependsOn += copyJars
+ 
+
+  
+
+repositories { 
+	     mavenCentral()
+         jcenter() 
+
+}
+
+
+dependencies {
+		 
+		
+	//compile   group: 'log4j', name: 'log4j', version: '1.2.17'
+	compile group: 'com.alibaba', name: 'fastjson', version: '1.2.40'  
+	compile 'org.apache.rocketmq:rocketmq-client:4.3.0'
+
+    testCompile 'junit:junit:4.12'
+     
+}
+
+
